@@ -44,6 +44,8 @@ week_T <- function(date) {
 # Cameroon only
 # Keep the full archive for later-vintage evaluation
 
+data <- readRDS("base_df.rds")
+
 all_events <- data %>%
   filter(country == country_name) %>%
   mutate(
@@ -190,7 +192,7 @@ delay_model <- mgcv::gam(
 )
 
 summary(delay_model)
-plot(delay_model, pages = 1)
+#plot(delay_model, pages = 1)
 
 # ============================================================
 # 4. REPORTING COMPLETENESS

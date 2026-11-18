@@ -46,6 +46,7 @@ week_T <- function(date) {
 # This is also used later to construct the latest-vintage
 # reference counts.
 
+data <- readRDS("base_df.rds")
 all_events <- data %>%
   mutate(
     event_date = as.Date(event_date),
@@ -219,7 +220,7 @@ delay_model <- mgcv::gam(
 )
 
 summary(delay_model)
-plot(delay_model, pages = 1)
+#plot(delay_model, pages = 1)
 
 # ============================================================
 # 4. COUNTRY-SPECIFIC REPORTING COMPLETENESS

@@ -37,6 +37,8 @@ week_T <- function(date) {
   T - 7 * floor(as.numeric(T - as.Date(date)) / 7)
 }
 
+data <- readRDS("base_df.rds")
+
 df <- data %>%
   mutate(
     event_date = as.Date(event_date),
