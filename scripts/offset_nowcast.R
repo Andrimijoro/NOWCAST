@@ -199,8 +199,8 @@ for (i in 1:10){
       ),
       nowcast = exp(pred_nowcast$fit),
       nowcast_rho = n / rho,
-      nowcast_rho_up = n/rho_upper,
-      nowcast_rho_low = n/rho_lower
+      nowcast_rho_low = n/rho_upper,
+      nowcast_rho_up = n/rho_lower
     )
   
   #####data final
