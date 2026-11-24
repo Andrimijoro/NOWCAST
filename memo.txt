@@ -17,6 +17,7 @@
 \usetikzlibrary{decorations.pathreplacing}
 \usepackage{amsmath}
 \usepackage{subcaption} % in preamble
+\usepackage[a4paper, margin=1.5cm]{geometry}
 
 \title{Research memo}
 \date{}
@@ -189,5 +190,53 @@ In Göran's paper this is done by introducing a smooth effect $s(t)$ in the haza
     \item I will then keep the delay as difference of week.
     \item I will implement the reverse hazard model and compare with the forward that I currently have. 
 \end{itemize}
+
+\subsection{Final setup}
+
+\begin{enumerate}
+    \item Nowcast Target : within 20 weeks
+    \item Forward hazard : We need the mature events to know the hit and risk, the latter are essential to estimate $P(D=d \mid D \ge d)$. Reverse hazard: Allows us to use the recent non-mature events. 
+    \item We truncate at D=20. The true number of events then refer to events reported after exactly 20 weeks. We want to avoid modelling the tail because we are not interested in unnecessary historical events (To be implemented in the Script)
+    \item The smoothness assumption stays the same for both approaches. Non-linear delay hazard. 
+    
+\end{enumerate}
+
+\subsection{Schneble et al AND Stoner \& Economou}
+
+\begin{itemize}
+    \item Schneble: Reverse hazard. Then logit. Then use $E(C_{t,d}) = F_t(d)E(Y_t)$ to model the intensity. Calendar time effect in the reverse hazard.
+    \item Stoner \& Economoue: Very good explanation of why we should jointly model the delay and case number. Correcting for the delay without a proper model for the outcome will fail to distinct between these cases: unusual low uncomplete report, unusual low number of cases, and both. They also talk about the temporal effect in the report distribution. Introduce first the GD that fails to account for it (from Höhle and an der Heiden) and then talk about the forward hazard regression with time variable (also from Höhle and an der Heiden) within a multinomial regression framework. It also addresses the problem that I have with Somalia. Removing the GD might confound the variability of report and number of events.\\
+    There is also a proposition of an offset model (NB). However they model the intensity of the partial report not the cumulated and directly plug the delay as just a smooth function rather than modeling it seperately. $log(\mu_{t,d}) = log(\lambda_t) + log(p_{t,d})$ with $log(\lambda_t) = f(t)$ and $log(p_{t,d}) = g(t,d)$ we have that $log(\mu_{t,d}) = f(t) + g(t,d)$. The variance is not very well captured here.
+\end{itemize}
+
+\subsection{Try the final model setup}
+
+\begin{itemize}
+    \item The model perform well for the tail in Sudan. We will probably need another model for historical events. 
+    \item We also have the same problem in Sudan. Whenever there is an increase in the true number of events, the nowcast is blown up.
+    \item The reuslts are very different from the results in epidemiology because the conflict process is nowhere near any smoothness. It's very rough. 
+    \item We will now try a joint model : After trying the joint model we saw that it was quite unstable. So this is not the appropriate way to do this. 
+\end{itemize}
+
+\subsection{Change in trend}
+
+Use the case of Somalia to illustrate how a model M performs when there is a change in the conflict trend. 
+\begin{itemize}
+    \item Use the observation from April 2025 to May 2025
+\end{itemize}
+
+\subsection{Different maximum delay}
+
+Somalia seems to have very fast report. The maximum delay is somewhere around 5 or 6. We let it to be 5. 
+It is then important to always check the appropriate D for each country. There is no standard value. We need then to make a serious definition of maturity based on flexible D. 
+
+For Sudan D also seems very low. So the real nowcasting problem here is to know whether a low and high number reported for the most recent event dates indicate low or high conflict. This is going in the direction of early warning system. 
+
+I changed the code to accomodate this low D. 
+
+\subsection{Final verdict today}
+
+The real challenge here is that the time series is not smooth like in epidemiology. There are some peaks. And these changes of direction (up, down) are very difficult for the nowcast model to capture. When the true number goes down, it underestimates it. When it goes up, it overestimates it. We will check tomorrow the special case of Somalia in May 2025 where there was a very steap increase. 
+
 
 \end{document}
