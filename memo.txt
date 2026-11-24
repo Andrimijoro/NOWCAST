@@ -1,0 +1,193 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}		% Can be removed after putting your text content
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{doi}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{decorations.pathreplacing}
+\usepackage{amsmath}
+\usepackage{subcaption} % in preamble
+
+\title{Research memo}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Nov 18, 2026}
+
+\subsection{Audit reporting dates}
+
+This audit has been done previously. The timestamp date in the data here refers to the first time the event appeared. It was identified in the vintage as the minimum of the timestamp date given that before that date the event was not inside any vintage. This is easy to verify by comparing each vintage version at time k such that $k>1$. We need the first vintage to identify the newly reported event. So no need for further investigations. The code in the github is true and I have checked this many times. So the base\_df data is trustworthy. It is the product of a long comparison of vintages from June 2024 to the last date\_id
+
+\subsection{Compare model assumptions}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Table caption}
+    \label{tab:example}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+        \hline
+        Models (R name) & Delays above 20 & Completeness at 20 & Maturity threshold & Country effect & Historical prior window & Uncertainty simulated \\ \hline
+        Nowcasting & Filtered out & yes & 20 weeks before last report & None & 26 of most recent mature events & from posterior \\ \hline
+        Country specific & Censored & Not necessarily & 52 weeks before last report & Filter & T-45 to T-20 & from posterior \\ \hline
+        Nowcasting with RE & Censored & Not necessarily & 52 weeks before last report & fixed effects in the code & T-45 to T-20 & from posterior \\ \hline
+    \end{tabular}}    
+\end{table}
+
+For the \textbf{Nowcasting.R} the maturity threshold for the delay distribution estimation is just 20 whereas the others have it at 50. When estimating the empirical prior tho, they use the same time periods. 
+
+\textit{What I did}: I changed the name of \textbf{Nowcasting with RE} to \textbf{Nowcasting with country FE}.
+
+The model in the manuscript seems not to correspond to any of the model above. First there is no information about how the reporting delay was estumated. Was the delay censored at D? Or did we filter out events with delay>D. There is no information about how the nowcasting was shared among different countries. No information about the country effect. The uncertainty quantification was obtained through simulation. The only information that is accurately given is the historical prior window, which corresponds to the one above. The manuscript needs precision and needs to be completely rewritten. 
+
+The manuscript in the future should include a baseline model, which will be the offset model. 
+
+\subsection{Paper Bastos et .al (2019)}
+
+The paper seems to be wrong in Section 3.3. The observed numbers should be $n_{t,d}$ with $t\leq T$ and $d \leq T-t$. The unobserved numbers have $d>T-t$, not $d>0$ as claimed in the paper.
+
+The plot in the paper is quite appealing. Do the nowcast for different prediction times. One plot for each prediction time. Plot the true value (last vintage) up to last prediction time + nowcast window, this should be the same for each plot. Plot the nowcast and vintage up to time of prediction in each plot. 
+
+For ACLED: Identify the time periods for the rolling window evaluation. Preferably where we have a change of trend. We expect, like in Bastos et .al (2019), that the nowcast will correctly predict missing events in different trends (increasing and decreasing)
+
+Transfer note
+
+\begin{table}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|c|c|}
+        \hline
+        Cutoff definition & Censoring OR filtering (not yet decided) \\
+        Permitted training information & For the moment delay, country, and event type. Would like to make things easier for investigation and baseline) \\
+        Refitting rule & Not yet solved \\
+        Prediction horizon & As mentionned above \\
+        Reference outcome & Assumed true event (from last vintage that is at least 20 weeks away from the last prediction time). But same reference outcome for each prediction time. \\
+        \hline
+    \end{tabular}}
+    \caption{Caption}
+    \label{tab:placeholder}
+\end{table}
+
+\subsection{Next experiment}
+
+Target: Weekly event number included in ACLED for a specified country AND event type (for the moment. In the future this could be extended to fatality intensity). This is different from the absolute truth about the number of conflicts because some events will almost susrely never make it to the ACLED dataset. So we condition on being reported in ACLED.
+
+Potential countries for the pilot : 
+\begin{itemize}
+    \item Cameroon : It has enough weekly events. But the reporting delay distribution is quite unstable so not the ideal for a pilote. 
+    \item Kenya: Around 50 -100 events but sinusoidale trend. So it could help proving the stability of the nowcast for increasing and decreasing trend.
+    \item Nigeria : 200 weekly events. Unstable reporting delay. 
+    \item Sudan: Has increasing and decreading in 2024. Decreasing in 2025. Very stable reporting delay.Around 200 events before decreasing to 100 in mid 2025.
+    \item Somalia: very stable trend and stable reporting delay. Around 100 events
+\end{itemize}
+
+Based on these, the choice for the 2 pilote countries : Sudan and Somalia since these seems to be the simplest case. The historical cutoff and the prediction horizon will be chosen based on the trend of the conflict and reporting delay distribution. This can be seen in the shiny app. 
+
+For these countries, I would prefer to do the baseline first before moving to the GP. 
+
+Next goal: finish the baseline model for the two countries and check feasibility.
+
+Research decision: rolling assesment of the "to-be chosen" prediction window of the baseline model Schnebe. 
+
+
+\section{Nov 23, 2026}
+
+\subsection{Fix the run and assumption for offset model}
+
+\begin{itemize}
+    \item Country : SUDAN
+    \item Cutoff: Mar 29, 2025 
+    \item Window for nowcast : 20
+    \item Max delay = 20 (Censoring)
+    \item Maturity = 25 weeks
+    \item Delay model = no event type, only s(d)
+\end{itemize}
+
+If we denote by $C_t(T)$ the observed count for $t$ using cutoff $T$, $Y_t$ the true number and $\rho_t(T)$ the completeness at $t$, then 
+
+\[
+E(C_t(T)) = \mu_t(T) = \rho_t(T) E(Y_t)
+\]
+\begin{equation}
+    log(\mu_t(T)) = log(\lambda_t) + log(\rho_t)  
+\end{equation}
+
+We can have a simple GLM model for $\lambda_t$ such as $log(\lambda_t) = \beta_0+t\beta_1$ and fit (1). Setting $\rho_t$ 1, we have an estimate of the fitted true number.
+
+Mature definition: Occured at most M weeks before the date of analysis
+
+\begin{enumerate}
+    \item Construct aggregate count
+    \item I aggregate the occurence date and report date by week such as if $t \in (T-7(k-1), T-7k]$ then $t_{week} = T-7k$ where $t$ is either the report or the occurrence date.
+    \item We need a day effect to differentiate between 2 days of delay from the same week interval and from different two. 
+    \item No we don't add day effect in the end because we focus on weekly count not daily. However we first transform the date of occurence and report as week of report and occurence. And then calculate the delay based on it. We also define T as the maximum report date in the data downloaded on a given date. 
+    
+\end{enumerate}
+
+\subsection{Modelling}
+
+\begin{itemize}
+    \item The model doesn't handle well the tail. This needs to be investigated more thorughly.
+    \item Intesity does not ensure that $\hat{Y}_t \ge C_t(T)$. It is useful if we want to investigate factors and association. In Göran's paper for example they use $C_t/\rho_t$ for the nowcasting estimation. 
+    \item The CI from distribution delay is very narrow. I need to do bootstrap. 
+    \item It doesn't work properly for sudden increasing trend. See in NOWCAST/figure\_nowcasting\_baseline/Somalia
+\end{itemize}
+
+\subsection{Clarifying all variables and reproducibility}
+
+This is the final definition: 
+
+\begin{itemize}
+    \item We assume maturity is reached by D = 20 weeks
+    \item The delay is calculated by taking the number of days between date of event and date of report. Doing so will help us prevent underestimating share of events reported with delay = 0. However when we do the nowcasting, we take the max date of report as the date of analysis (this is usually TUESDAY so we fix it on TUESDAY). From this date we construct the horizon of nowcasting. This setup allows us to appropariately capture the events with delay = 0 week. 
+    \item Nowcasting for two countries Sudan and Somalia. Horizon T,...,T-D
+    \item Rolling window through the 10 last mature period 
+    \item For the delay estimation we discard 20 last weeks and take only 26 weeks for estimation
+\end{itemize}
+
+\subsection{Inspect the recent week correction}
+
+The overestimation is likely due to the sudden change in the trend. The model performs relatively well in the recent weeks if the trend doesn't change (for example such as in Sudan). This also might mean that change of trend might affect the reporting process. 
+
+One suggestion is to control for the number of events reported with delay = 0. 
+
+I have the shiny app to check how the distribution changes during these periods.
+
+After checking: 
+\begin{itemize}
+    \item When it started to increase, the median went from 0 to 1. So there was a change. Future work: How to capture these changes in reporting process (this is impossible for the moment because we take only mature events for delay distribution estimation). 
+    \item Hypothesis: change in reporting distribution
+    \item This was observed in Somalia
+\end{itemize}
+
+\subsection{Time effect for reporting delay}
+
+In Göran's paper this is done by introducing a smooth effect $s(t)$ in the hazard 
+\[ \pi(t,d) = s(d) + s(t) \]
+
+\section{Nov 24, 2026}
+
+\subsection{Decision note}
+
+\begin{itemize}
+    \item We keep the elapse day for the delay calculation instead of taking the difference between reporting and occurence week. This allows us to capture well the delay. In the case of week difference, if the event date is at the end of the week and the report happens at the beginning of the next week, then this has only 1 day of difference but if we take the week difference it will wrongly assign it a delay of 1 week. This will underestimate the delay d=0. 
+    \item However when we aggregate the number of events by week, we use the Tuesday boundary. This is how we can maximize the number of events with d=0. 
+    \item However I see that these definitions are inconsistent somehow. Because the age and delay of one event can be different. Eg: D=0 (if elapse day<7) but age = 1 (Difference between occurence week and report week).
+    \item I will then keep the delay as difference of week.
+    \item I will implement the reverse hazard model and compare with the forward that I currently have. 
+\end{itemize}
+
+\end{document}
