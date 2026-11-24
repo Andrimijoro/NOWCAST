@@ -12,29 +12,36 @@ library(MASS)
 # 1. PARAMETERS
 # ============================================================
 
-country_name <- "Sudan"
+country_name <- "Somalia"
 data <- readRDS("base_df.rds")
 data <- filter(data, country == country_name)
 
-#this is the last mature t
-T_end <- max(data$date_id) - 20*7 + 2
+###MAXIMUM DELAY BASED ON DIFFERENT COUNTRY
+D <- 5
 
-#this is the first analysis date, a Tuesday.
-T_start <- T_end - 9*7
+#The start of the rolling window
+##choose a tuesday
+
+T_start <- as.Date("2026-04-14")
+###Number of rolling window
+N <- 10
+T_end <- T_start + N
 
 # Minimum cohort age for delay-model estimation
-M <- 20L
-D <- 20L
+M <- D + D/2
+
+##Window for delay estimation
 W <- 26
-###number of window
-N <- 10
+
+##Nowcast window
+NW <- 20
 
 pdf("all_plots.pdf", width = 10, height = 6)
 
 for (i in 1:N){
   
   print(i)
-  T <- T_start + (i-1)*7###the download date
+  T <- T_start + (i-1)*7 ###the download date
   set.seed(123)
   
   # ============================================================
@@ -75,10 +82,6 @@ for (i in 1:N){
       delay_week >= 0
     )
   
-  stopifnot(nrow(df) > 0)
-  
-  # Do not remove delays >20.
-  # They contribute right-censored observations.
   
   # ============================================================
   # 3. REPORTING DELAY DISTRIBUTION
@@ -87,9 +90,8 @@ for (i in 1:N){
   # Mature occurrence cohorts
   
   mature <- df %>%
-    filter(occurence_week <= T-M*7 & occurence_week >= T-(D+W-1)*7) 
+    filter(occurence_week <= T-M*7 & occurence_week >= T-(M+W-1)*7) 
   
-  stopifnot(nrow(mature) > 0)
   
   x <- mature$delay_week
   x <- x[!is.na(x)]
@@ -113,7 +115,8 @@ for (i in 1:N){
     cbind(hits, risk - hits) ~
       s(
         delay_week,
-        bs = "tp"
+        bs = "tp",
+        k=4
       ),
     data = risk_data,
     family = binomial(link = "cloglog"),
@@ -164,19 +167,20 @@ for (i in 1:N){
   ###Table 
   
   regression_table <- df %>%
-    filter(occurence_week >= T - D*7) %>%
+    filter(occurence_week >= T_start - (NW)*7) %>%
     group_by(occurence_week) %>%
     tally() %>%
     arrange(occurence_week) %>%
     ungroup() %>%
-    mutate(delay_week = as.numeric((T-occurence_week)/7)) %>%
+    mutate(delay_week = as.numeric((T-occurence_week)/7),
+           delay_week = ifelse(delay_week >D, D, delay_week)) %>%
     left_join(delay_cdf, by = "delay_week") %>%
     mutate(log_rho = log(rho), t = 1:n())
   
   ##non-linear
   
   model_nb <- gam(
-    n ~ s(t, bs = "tp") + offset(log_rho),
+    n ~ s(t, bs = "tp", k=4) + offset(log_rho),
     family = nb(),
     method = "REML",
     data = regression_table
@@ -209,8 +213,8 @@ for (i in 1:N){
   #####data final
   
   data_final <- all_events %>%
-    filter(occurence_week <= T_end, 
-           occurence_week >= min(regression_table$occurence_week)) %>%
+    filter(occurence_week <= T_end + 2*D*7, 
+           occurence_week >= T_start - (NW)*7) %>%
     group_by(occurence_week) %>%
     summarise(true_n = n( )) %>%
     left_join(regression_table, by = "occurence_week")
