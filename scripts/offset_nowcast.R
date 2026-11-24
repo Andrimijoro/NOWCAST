@@ -26,10 +26,12 @@ T_start <- T_end - 9*7
 M <- 20L
 D <- 20L
 W <- 26
+###number of window
+N <- 10
 
-#pdf("all_plots.pdf", width = 10, height = 6)
+pdf("all_plots.pdf", width = 10, height = 6)
 
-for (i in 1:1){
+for (i in 1:N){
   
   print(i)
   T <- T_start + (i-1)*7###the download date
@@ -59,9 +61,10 @@ for (i in 1:1){
       occurence_week = week_T(event_date),
       report_week = week_T(timestamp_date),
       delay_week = as.integer(
-        (timestamp_date - event_date) / 7
+        (report_week - occurence_week) / 7
       )
-    )
+    ) %>%
+    filter(delay_week <= D)
   
   # Reconstruct vintage T
   
@@ -206,7 +209,8 @@ for (i in 1:1){
   #####data final
   
   data_final <- all_events %>%
-    filter(occurence_week <= T_end, occurence_week >= min(regression_table$occurence_week)) %>%
+    filter(occurence_week <= T_end, 
+           occurence_week >= min(regression_table$occurence_week)) %>%
     group_by(occurence_week) %>%
     summarise(true_n = n( )) %>%
     left_join(regression_table, by = "occurence_week")
@@ -257,4 +261,4 @@ for (i in 1:1){
   
 }
 
-#dev.off()
+dev.off()
