@@ -12,7 +12,7 @@ library(MASS)
 # 1. PARAMETERS
 # ============================================================
 
-country_name <- "Somalia"
+country_name <- "Sudan"
 data <- readRDS("base_df.rds")
 data <- filter(data, country == country_name)
 
@@ -27,9 +27,9 @@ M <- 20L
 D <- 20L
 W <- 26
 
-pdf("all_plots.pdf", width = 10, height = 6)
+#pdf("all_plots.pdf", width = 10, height = 6)
 
-for (i in 1:10){
+for (i in 1:1){
   
   print(i)
   T <- T_start + (i-1)*7###the download date
@@ -257,4 +257,4 @@ for (i in 1:10){
   
 }
 
-dev.off()
+#dev.off()
