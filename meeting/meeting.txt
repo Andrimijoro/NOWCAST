@@ -1,0 +1,199 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\setbeamertemplate{blocks}[default]
+\usepackage{amsmath}
+\setbeamertemplate{theorems}[numbered]
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}		% Can be removed after putting your text content
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{doi}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, decorations.pathreplacing}
+\usepackage{subcaption} % in preamble
+\usepackage{pifont}
+\usepackage{natbib}
+
+
+\title{Nowcasting paper}
+% \author[Faniry A. Razakason et al.]{
+%   Faniry A. Razakason\inst{1} (presenter)
+%   \and Daniel Racek\inst{2}
+%   \and Paul W. Thurner\inst{3}
+%   \and G\"oran Kauermann\inst{1,4}
+% }
+% \institute[LMU Munich]{
+%   \inst{1} Institute of Statistics, LMU Munich\\
+%   \inst{2} Center for Crisis Early Warning, University of the Bundeswehr Munich\\
+%   \inst{3} Institute of Political Science, LMU Munich\\
+%   \inst{4} Munich Center for Machine Learning
+% }
+% \date{14 October 2026}
+\begin{document}
+
+% Title slide
+\frame{\titlepage}
+
+% Table of contents
+\begin{frame}{Reporting distribution dynamics}
+
+\begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/reporting_delay_Africa.pdf}
+    \caption{25th percentile, Median, and 75th percentile. Data on 2026-11-01}
+\end{figure}
+   
+\end{frame}
+
+\begin{frame}{Reporting delay -- Cameroon}
+
+\begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/reporting_delay_Cameroon.pdf}
+    \caption{25th percentile, Median, and 75th percentile. Data on 2026-11-01}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Reporting delay -- Cameroon}
+
+\begin{itemize}
+    \item The Median is 20 for Cameroon the first half of 2025. 
+    \item This could be explained by the change of sourcing mentioned by the referee of the reporting delay paper. 
+    \item There is clearly time variation in the delay distribution. 
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Reporting delay -- DRC}
+
+\begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/reporting_delay_Democratic_Republic_of_Congo.pdf}
+    \caption{25th percentile, Median, and 75th percentile. Data on 2026-11-01}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Reporting delay -- DRC}
+    \begin{itemize}
+        \item The median is pretty low but there are some historical events.
+        \item The weekly number of observation is quite low.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Reporting delay -- Somalia}
+
+\begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/reporting_delay_Somalia.pdf}
+    \caption{25th percentile, Median, and 75th percentile. Data on 2026-11-01}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Reporting delay -- Sudan }
+
+\begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/reporting_delay_Sudan.pdf}
+    \caption{25th percentile, Median, and 75th percentile. Data on 2026-11-01}
+\end{figure}
+
+\end{frame}
+
+\section{Meeting: 25 November 2026}
+
+\begin{frame}{Nowcasting Model: Offset}
+
+Model for the intensity of $Y_t$, the true number of events that occured at $t$
+
+\[Y_t \sim \operatorname{NB}(\lambda_t, \phi)\]
+
+\[log(\lambda_t) = \beta_o + s(t) \]
+    
+\end{frame}
+
+
+\begin{frame}{Nowcasting Model: Offset}
+
+$C_{t,d}$ : Cumulated number of events that occurred at $t$ but reported by $t+d$. \\
+$Y_t$ : True number of events that occurred at $t$. \\
+$F_t(d)$ : Reporting delay distribution function. 
+
+\begin{equation}
+     E(C_{t,d}) = F_{t}(d)E(Y_{t})
+\end{equation}
+
+If we let $\mu_{t,d} = E(C_{t,d})$ then
+
+\[ log(\mu_{t,d}) = log(\lambda_t) + O_{t,d}\] where $O_{t,d} = log(F_{t}(d))$
+    
+\end{frame}
+
+\begin{frame}{Nowcasting Model: Offset}
+
+    \begin{itemize}
+        \item Problem: We can't use the intensity model to predict the $Y_t$ because of the constraint that $C_{t,T-t} \le \hat{\lambda}_t$.
+        \item Solution: Since we have observed $C_{t,T-t}$ we write (1) as \[C_{t,T-t} = F_{t}(T-t)E(Y_{t})\]
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Nowcasting Model: Offset}
+
+    \begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/somalia_plot.pdf}
+    \caption{Nowcasting for Somalia. T = 2025-05-05. D=5}
+    \end{figure}
+    
+\end{frame}
+
+\begin{frame}{Nowcasting Model: Offset}
+
+    \begin{figure}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figure/intensity_somali.pdf}
+    \caption{Intensity Somalia. T = 2025-05-05. D=5}
+    \end{figure}
+    
+\end{frame}
+
+
+
+\end{document}
