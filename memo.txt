@@ -239,4 +239,23 @@ I changed the code to accomodate this low D.
 The real challenge here is that the time series is not smooth like in epidemiology. There are some peaks. And these changes of direction (up, down) are very difficult for the nowcast model to capture. When the true number goes down, it underestimates it. When it goes up, it overestimates it. We will check tomorrow the special case of Somalia in May 2025 where there was a very steap increase. 
 
 
+\section{Nov 25, 2026}
+
+\subsection{Create presentation for Göran}
+
+I created a file called "meeting" where I put all of the materials I need for meetings. 
+
+In the meeting today I will focus on the Offest model and show 3 main things: 
+
+\begin{itemize}
+    \item The intensity model alone doesn't work for prediction because it doesn't force the estimated intensity to be greater or equal than the reported number of events.
+    \item Even though we cannot use it for the moment for prediction, it still is valuable. I show the comparison of intensity+offset from incomplete data, intensity without offset from incomplete data, intensity from complete data. 
+    \item Since $C_{t, T-t}$ is known, we use it to do the nowcast. However it is quite unstable when the trend changes. (Show a few examples from Somalia)
+\end{itemize}
+
+The intensity with offset could be also used to see the effect of some covariates on the intensity without ignoring the delays. We can run an example for the event type (future work).
+
+
+\subsection{}
+
 \end{document}
