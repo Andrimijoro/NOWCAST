@@ -288,7 +288,7 @@ dev.off()
 comparison_data <- comparison_data %>%
   mutate(diff = (true_n - nowcast_rho))
 
-ggplot(comparison_data, aes(x = rho)) +
+comparison_plot <- ggplot(comparison_data, aes(x = rho)) +
   geom_point(
     aes(y = diff)
   ) +
@@ -307,7 +307,7 @@ ggplot(comparison_data, aes(x = rho)) +
 comparison_data <- comparison_data %>%
   filter(rho < 0.4)
 
-ggplot(comparison_data, aes(x = rho)) +
+comparison_low_rho <- ggplot(comparison_data, aes(x = rho)) +
   geom_point(
     aes(y = diff, color = n)
   ) +
@@ -321,3 +321,24 @@ ggplot(comparison_data, aes(x = rho)) +
   theme(
     legend.position = "bottom"
   )
+
+
+####save plot 
+
+ggsave(
+  filename = "Memo_plot/comparison.pdf",
+  plot = comparison_plot,
+  width = 7,
+  height = 5,
+  units = "in",
+  device = cairo_pdf
+)
+
+ggsave(
+  filename = "Memo_plot/comparison_low_rho.pdf",
+  plot = comparison_low_rho,
+  width = 7,
+  height = 5,
+  units = "in",
+  device = cairo_pdf
+)
