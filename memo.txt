@@ -260,5 +260,57 @@ The intensity with offset could be also used to see the effect of some covariate
 
 We need to check why there is a decline in July: it might come from the fact that there is not report in december (christmay break) and the reporting delay distribution estimates are incorrectly infered. I need to check that. 
 
+\subsection{New research direction}
+
+How will we sell the paper? The difference in the intensity is interesting. The comparison between intensity from incomplete vs intesity+offset will be explored more. 
+
+We also need to think about how we can deal with the christmas holiday: it might affect the reporting delay distribution and nowcasting there = forcasting because there is no report at all. (but future work)
+
+\subsection{Reproducibility for the intensity code}
+
+\begin{itemize}
+    \item Fix D (maximum delay), T\_start (date of analysis), N : number of rolling window. 
+    \item Minimum cohort age: D+D/2. Number of weeks for reporting delay estimation : 15
+    \item Nowcast window : D
+    \item Mature event for comparison with the nowcas : event with at most 2*D delay.
+    \item W : window for delay estimation 
+    \item Have k=4 for each model
+\end{itemize}
+
+This plot will be so much valuable when we show the importance of nowcasting. Showing the mean is probably better than showing the number reported. 
+
+\subsection{Comparison result Sudan}
+
+The comparison here investigates the report completion vs the absolute difference between nowcast and true value. 
+
+To make the comparison we took the true number, reported number, and rho from each nowcast window. 
+
+In the comparison plot we find that (plot below) :
+
+\begin{itemize}
+    \item As expected, there is much uncertainty when rho is low. It is not surprising because events wclose to the boundary are young and have low rho.
+    \item After investigating these events with low rho, we find that low report will likely have also low nowcast. High report will tend to overshoot it. This low and high report might represent two different cases that will probably cause the difference : relatively low report but high true number, relatively high report but low true number
+\end{itemize}
+
+    \begin{figure}[h]
+    \centering
+    \includegraphics[
+        width=0.5\textwidth,
+        height=0.5\textheight,
+        keepaspectratio
+    ]{Memo_plot/comparison.pdf}
+    \end{figure}
+
+    \begin{figure}[h]
+    \centering
+    \includegraphics[
+        width=0.5\textwidth,
+        height=0.5\textheight,
+        keepaspectratio
+    ]{Memo_plot/comparison_low_rho.pdf}
+    \end{figure}
+
+\subsection{Further reading Stoner and Economou}
+I will finish this tonight. 
 
 \end{document}
