@@ -31,10 +31,10 @@ T_end <- T_start + N
 M <- D + D/2
 
 ##Window for delay estimation
-W <- 26
+W <- 15
 
 ##Nowcast window
-NW <- 20
+NW <- D
 
 pdf("all_plots.pdf", width = 10, height = 6)
 
@@ -71,7 +71,7 @@ for (i in 1:N){
         (report_week - occurence_week) / 7
       )
     ) %>%
-    filter(delay_week <= D)
+    filter(delay_week <= 2*D)
   
   # Reconstruct vintage T
   
@@ -187,7 +187,7 @@ for (i in 1:N){
   )
   
   model_incomp <- gam(
-    n ~ s(t, bs = "tp"),
+    n ~ s(t, bs = "tp", k=4),
     family = nb(),
     method = "REML",
     data = regression_table
@@ -233,7 +233,7 @@ for (i in 1:N){
   data_nowcast <- drop_na(data_final)
   
   model_comp <- gam(
-    true_n ~ s(t, bs = "tp"),
+    true_n ~ s(t, bs = "tp", k=4),
     family = nb(),
     method = "REML",
     data = data_nowcast
