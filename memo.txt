@@ -256,6 +256,9 @@ In the meeting today I will focus on the Offest model and show 3 main things:
 The intensity with offset could be also used to see the effect of some covariates on the intensity without ignoring the delays. We can run an example for the event type (future work).
 
 
-\subsection{}
+\subsection{Meeting feedback}
+
+We need to check why there is a decline in July: it might come from the fact that there is not report in december (christmay break) and the reporting delay distribution estimates are incorrectly infered. I need to check that. 
+
 
 \end{document}
