@@ -291,4 +291,33 @@ comparison_data <- comparison_data %>%
 ggplot(comparison_data, aes(x = rho)) +
   geom_point(
     aes(y = diff)
+  ) +
+  labs(
+    x = "Rho",
+    y = "True - Nowcast",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "bottom"
+  )
+
+#### Low rho
+
+comparison_data <- comparison_data %>%
+  filter(rho < 0.4)
+
+ggplot(comparison_data, aes(x = rho)) +
+  geom_point(
+    aes(y = diff, color = n)
+  ) +
+  scale_color_gradient(low = "red", high = "green")+
+  labs(
+    x = "Rho",
+    y = "True - Nowcast",
+    color = "Reported events"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "bottom"
   )
