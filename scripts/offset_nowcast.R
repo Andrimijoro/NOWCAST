@@ -38,7 +38,8 @@ NW <- D+5
 
 ###STore comparison
 
-comparison_data <- data.frame(true_n = numeric(), 
+comparison_data <- data.frame(n = numeric(), 
+                              true_n = numeric(), 
                               nowcast_rho = numeric(),
                               rho = numeric(),
                               date = numeric())
@@ -229,7 +230,7 @@ for (i in 1:N){
   #####Save nowcast and rho for comparison
   
   comparison_df <- data_final %>%
-    dplyr::select(true_n, nowcast_rho, rho) %>%
+    dplyr::select(n, true_n, nowcast_rho, rho) %>%
     filter(rho < 0.999) %>%
     mutate(date = T)
   
@@ -283,3 +284,11 @@ for (i in 1:N){
 dev.off()
 
 ###comparison plot
+
+comparison_data <- comparison_data %>%
+  mutate(diff = (true_n - nowcast_rho))
+
+ggplot(comparison_data, aes(x = rho)) +
+  geom_point(
+    aes(y = diff)
+  )
