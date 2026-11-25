@@ -12,7 +12,7 @@ library(MASS)
 # 1. PARAMETERS
 # ============================================================
 
-country_name <- "Sudan"
+country_name <- "Somalia"
 data <- readRDS("base_df.rds")
 data <- filter(data, country == country_name)
 
@@ -24,17 +24,24 @@ D <- 6
 
 T_start <- as.Date("2026-04-14")
 ###Number of rolling window
-N <- 10
+N <- 15
 T_end <- T_start + N
 
 # Minimum cohort age for delay-model estimation
-M <- D + D/2
+M <- D+D/2
 
 ##Window for delay estimation
-W <- 26
+W <- 15
 
 ##Nowcast window
-NW <- 20
+NW <- D+5
+
+###STore comparison
+
+comparison_data <- data.frame(true_n = numeric(), 
+                              nowcast_rho = numeric(),
+                              rho = numeric(),
+                              date = numeric())
 
 pdf("all_plots.pdf", width = 10, height = 6)
 
@@ -219,6 +226,14 @@ for (i in 1:N){
     summarise(true_n = n( )) %>%
     left_join(regression_table, by = "occurence_week")
   
+  #####Save nowcast and rho for comparison
+  
+  comparison_df <- data_final %>%
+    dplyr::select(true_n, nowcast_rho, rho) %>%
+    filter(rho < 0.999) %>%
+    mutate(date = T)
+  
+  comparison_data <- rbind(comparison_data, comparison_df)
   
   p <- ggplot(data_final, aes(x = occurence_week)) +
     geom_line(
@@ -267,3 +282,4 @@ for (i in 1:N){
 
 dev.off()
 
+###comparison plot
