@@ -12,12 +12,12 @@ library(MASS)
 # 1. PARAMETERS
 # ============================================================
 
-country_name <- "Somalia"
+country_name <- "Sudan"
 data <- readRDS("base_df.rds")
 data <- filter(data, country == country_name)
 
 ###MAXIMUM DELAY BASED ON DIFFERENT COUNTRY
-D <- 5
+D <- 6
 
 #The start of the rolling window
 ##choose a tuesday
@@ -71,7 +71,7 @@ for (i in 1:N){
         (report_week - occurence_week) / 7
       )
     ) %>%
-    filter(delay_week <= D)
+    filter(delay_week <= 2*D)
   
   # Reconstruct vintage T
   
@@ -266,3 +266,4 @@ for (i in 1:N){
 }
 
 dev.off()
+
