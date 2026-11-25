@@ -1,0 +1,297 @@
+#####This is a script for the offset model
+
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+library(mgcv)
+library(lubridate)
+library(MASS)
+
+# ============================================================
+# 1. PARAMETERS
+# ============================================================
+
+country_name <- "Somalia"
+data <- readRDS("base_df.rds")
+data <- filter(data, country == country_name)
+
+###MAXIMUM DELAY BASED ON DIFFERENT COUNTRY
+D <- 5
+
+#The start of the rolling window
+##choose a tuesday
+
+T_start <- as.Date("2026-04-14")
+###Number of rolling window
+N <- 10
+T_end <- T_start + N
+
+# Minimum cohort age for delay-model estimation
+M <- D + D/2
+
+##Window for delay estimation
+W <- 26
+
+##Nowcast window
+NW <- 20
+
+pdf("all_plots.pdf", width = 10, height = 6)
+
+for (i in 1:N){
+  
+  print(i)
+  T <- T_start + (i-1)*7 ###the download date
+  set.seed(123)
+  
+  # ============================================================
+  # 2. PREPARE DATA
+  # ============================================================
+  
+  # Define weekly intervals relative to T
+  week_T <- function(date) {
+    T - 7 * floor(
+      as.numeric(T - as.Date(date)) / 7
+    )
+  }
+  
+  
+  all_events <- data %>%
+    mutate(
+      event_date = as.Date(event_date),
+      timestamp_date = as.Date(timestamp_date),
+      event_type = as.character(event_type),
+      country = as.character(country)
+    ) %>%
+    arrange(timestamp_date) %>%
+    mutate(
+      occurence_week = week_T(event_date),
+      report_week = week_T(timestamp_date),
+      delay_week = as.integer(
+        (report_week - occurence_week) / 7
+      )
+    ) %>%
+    filter(delay_week <= D)
+  
+  # Reconstruct vintage T
+  
+  df <- all_events %>%
+    filter(
+      timestamp_date <= T,
+      event_date <= T,
+      delay_week >= 0
+    )
+  
+  
+  # ============================================================
+  # 3. REPORTING DELAY DISTRIBUTION
+  # ============================================================
+  
+  # Mature occurrence cohorts
+  
+  mature <- df %>%
+    filter(occurence_week <= T-M*7 & occurence_week >= T-(M+W-1)*7) 
+  
+  
+  x <- mature$delay_week
+  x <- x[!is.na(x)]
+  
+  risk_data <- tibble(
+    delay_week = 0:D,
+    hits = vapply(0:D, function(d) sum(x == d), integer(1)),
+    risk = vapply(0:D, function(d) sum(x >= d), integer(1))
+  ) %>%
+    filter(risk > 0)
+  
+  # Pool event types with fewer than 30 mature events
+  
+  # ------------------------------------------------------------
+  # Complementary log-log GAM
+  #
+  # cloglog(pi_k(d)) = b_k(d)
+  # ------------------------------------------------------------
+  
+  delay_model <- mgcv::gam(
+    cbind(hits, risk - hits) ~
+      s(
+        delay_week,
+        bs = "tp",
+        k=4
+      ),
+    data = risk_data,
+    family = binomial(link = "cloglog"),
+    method = "REML"
+  )
+  
+  #summary(delay_model)
+  #plot(delay_model, pages = 1)
+  
+  # ============================================================
+  # 4. REPORTING COMPLETENESS
+  # ============================================================
+  
+  delay_grid <- tidyr::expand_grid(
+    delay_week = 0:D
+  )
+  
+  delay_grid <- delay_grid %>%
+    arrange(delay_week)
+  
+  # Model matrix and fitted hazards
+  X <- predict(delay_model, newdata = delay_grid, type = "lpmatrix")
+  eta <- drop(X %*% coef(delay_model))
+  hazard <- delay_model$family$linkinv(eta)
+  
+  # Cumulative reporting probability
+  S <- cumprod(1 - hazard)
+  rho <- 1 - S
+  
+  # Delta-method gradient
+  w <- delay_model$family$mu.eta(eta) / (1 - hazard)
+  G <- apply(sweep(X, 1, w, "*"), 2, cumsum)
+  G <- sweep(G, 1, S, "*")
+  
+  # Asymptotic standard error
+  V <- vcov(delay_model, unconditional = TRUE)
+  se <- sqrt(rowSums((G %*% V) * G))
+  
+  # 95% confidence intervals
+  delay_cdf <- delay_grid %>%
+    mutate(
+      hazard = hazard,
+      rho = rho,
+      rho_lower = pmax(0, rho - 2 * se),
+      rho_upper = pmin(1, rho + 2 * se)
+    )
+  
+  ###Table 
+  
+  regression_table <- df %>%
+    filter(occurence_week >= T_start - (NW)*7) %>%
+    group_by(occurence_week) %>%
+    tally() %>%
+    arrange(occurence_week) %>%
+    ungroup() %>%
+    mutate(delay_week = as.numeric((T-occurence_week)/7),
+           delay_week = ifelse(delay_week >D, D, delay_week)) %>%
+    left_join(delay_cdf, by = "delay_week") %>%
+    mutate(log_rho = log(rho), t = 1:n())
+  
+  ##non-linear
+  
+  model_nb <- gam(
+    n ~ s(t, bs = "tp", k=4) + offset(log_rho),
+    family = nb(),
+    method = "REML",
+    data = regression_table
+  )
+  
+  model_incomp <- gam(
+    n ~ s(t, bs = "tp"),
+    family = nb(),
+    method = "REML",
+    data = regression_table
+  )
+  
+  
+  ###nowcast
+  
+  ### Just intensity
+  pred_nowcast <- predict(
+    model_nb,
+    newdata = mutate(regression_table, log_rho = 0),
+    type = "link",
+    se.fit = TRUE,
+    unconditional = TRUE
+  )
+  
+  pred_incomp <- predict(
+    model_incomp,
+    newdata = regression_table,
+    type = "link",
+    se.fit = TRUE,
+    unconditional = TRUE
+  )
+  
+  regression_table <- regression_table %>%
+    mutate(
+      nowcast = exp(pred_nowcast$fit),
+      incomp = exp(pred_incomp$fit)
+    )
+  
+  #####data final
+  
+  data_final <- all_events %>%
+    filter(occurence_week <= T_end + 2*D*7, 
+           occurence_week >= T_start - (NW)*7) %>%
+    group_by(occurence_week) %>%
+    summarise(true_n = n( )) %>%
+    left_join(regression_table, by = "occurence_week")
+  
+  ###nowcast with complete data
+  
+  data_nowcast <- drop_na(data_final)
+  
+  model_comp <- gam(
+    true_n ~ s(t, bs = "tp"),
+    family = nb(),
+    method = "REML",
+    data = data_nowcast
+  )
+  
+  pred_comp <- predict(
+    model_comp,
+    newdata = data_nowcast,
+    type = "link",
+    se.fit = TRUE,
+    unconditional = TRUE
+  )
+  
+  data_nowcast$comp <- exp(pred_comp$fit)
+  
+  p <- ggplot(data_nowcast, aes(x = occurence_week)) +
+    # geom_line(
+    #   aes(y = true_n, color = "True"),
+    #   linewidth = 1
+    # ) +
+    geom_line(
+      aes(y = nowcast, color = "with Offset"),
+      linewidth = 1
+    ) +
+    # geom_line(
+    #   aes(y = n, color = "Observed"),
+    #   linewidth = 1
+    # ) +
+    geom_line(
+      aes(y = incomp, color = "without Offset"),
+      linewidth = 1
+    )+
+    geom_line(
+      aes(y = comp, color = "True intensity"),
+      linewidth = 1
+    )+
+    scale_color_manual(
+      values = c(
+        "Observed" = "orange",
+        "True" = "blue",
+        "with Offset" = "green",
+        "without Offset" = "black",
+        "True intensity" = "blue"
+      )
+    ) +
+    labs(
+      x = "Occurrence week",
+      y = "Event count",
+      color = NULL,
+      title = paste0("Nowcasting ", country_name, " ", T)
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+      legend.position = "bottom"
+    )
+  
+  print(p)
+  
+}
+
+dev.off()
