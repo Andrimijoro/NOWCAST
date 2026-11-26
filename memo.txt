@@ -331,7 +331,8 @@ Let $Y_t$ be the count for a fixed reporting horizon $B$ and $C_t(T)$ its observ
 If we define by $\rho_{t} = F_t(T-t)$ where $d$ is the reporting delay, then 
 \[C_t(T) \mid Y_t \sim \operatorname{B}(Y_t, \rho_{t})\].
 
-It then follows that 
+By Poisson thining, it then follows that 
+\[C_t(T) \sim \operatorname{P}(\lambda_t \cdot \rho_t) \]
 \[\mathbb{E}[C_t(T)] = \mathbb{E}[Y_t] \cdot \rho_{t} \]
 
 From \autoref{eq:2}, we get that
@@ -343,12 +344,41 @@ From \autoref{eq:2}, we get that
 From this formulation we distinguish 3 different models: \autoref{eq:2}, \autoref{eq:3}, and
 
 \begin{equation}
-    log(\mathbb{E}[C_t(T)]) = log(\mu_t) = f(t)
+    log(\mathbb{E}[C_t(T)]) = log(\mu_t) = g(t)
     \label{eq:4}
 \end{equation}
 
 Our goal is to understand the difference between the three. 
 
-\subsection{}
+
+\subsection{Some other assumptions}
+
+If we assume that $\rho_t = \rho$ then the difference between \autoref{eq:3} and \autoref{eq:4} is just the intercept if we have the same function family for $f(.)$.
+
+However, the assumption of a time invariant completness means that the proportion of unreported events for a specific date is independent from its age. This is quite unrealistic and it is then impossible to say that $\rho$ still represents the reporting delay distribution. 
+
+So the right assumption is that $\rho_t$ should have the usual properties of distribution function.
+
+\begin{enumerate}
+    \item $0 < \rho_t \le 1$
+    \item $\rho_t$ is non-decreasing with respect to the age $T-t$
+    \item $\rho_t $ tends to 1 as $t$ approaches $-\infty$ (with the additional assumption of fixed reporting horizon $B$, we can replace $-\infty$ by $T-B$)
+\end{enumerate}
+
+We rather assume stable distribution for reporting delay $F_t(d) = F(d)$.
+
+\subsection{Smoothing basics: Eilers \& Marx (1996)}
+
+Flexible smoothing with B-spline and penalties.
+
+B-spline is attractive for non-parametric modelling. 
+
+Reminder of what B-splines are: Polynomial pieces connected in a \textbf{special way}. We need the degree of the polynomials that are joined and the knots where they are joined. For example: One B-spline of degree ONE consists of joining two linear pieces at one knowt (In total we have 3 with the 2 boundaries). They must have equal coordinate at the knots but not first derivative (this is obvious because if they had the same derivate and the same coordinate, it means that the pieces after and before the knot are the same line). A B-spline of degree TWO consists of three quadratic piecex joined at 2 knots where they have the same coordinate and the same derivative but not their second derivative (If they had the same coordinate, same derivative, same second derivative then they would be the same quadratic equation). 
+
+Other properties of B spline of degree q: 
+\begin{itemize}
+    \item 
+\end{itemize}
+
 
 \end{document}
