@@ -313,4 +313,42 @@ In the comparison plot we find that (plot below) :
 \subsection{Further reading Stoner and Economou}
 I will finish this tonight. 
 
+\section{Nov 26, 2026}
+Today's schedule is dedicated to "Smoothing intensity under delayed reporting: complete data, incomplete data and completeness offsets"
+
+\subsection{Definition and target}
+
+Let $Y_t$ be the count for a fixed reporting horizon $B$ and $C_t(T)$ its observed subset at cutoff $T$. We make the following assumptions for our model:
+
+\[Y_t \sim \operatorname{P}(\lambda_t)\] 
+
+\begin{equation}
+    log(\lambda_t) = f(t) \text{ where } f(.) \text{ is a smooth function}.
+    \label{eq:2}
+\end{equation}
+
+
+If we define by $\rho_{t} = F_t(T-t)$ where $d$ is the reporting delay, then 
+\[C_t(T) \mid Y_t \sim \operatorname{B}(Y_t, \rho_{t})\].
+
+It then follows that 
+\[\mathbb{E}[C_t(T)] = \mathbb{E}[Y_t] \cdot \rho_{t} \]
+
+From \autoref{eq:2}, we get that
+\begin{equation}
+    log(\mathbb{E}[C_t(T)]) = log(\mu_t) = f(t) + log(\rho_{t}) .
+    \label{eq:3}
+\end{equation}
+
+From this formulation we distinguish 3 different models: \autoref{eq:2}, \autoref{eq:3}, and
+
+\begin{equation}
+    log(\mathbb{E}[C_t(T)]) = log(\mu_t) = f(t)
+    \label{eq:4}
+\end{equation}
+
+Our goal is to understand the difference between the three. 
+
+\subsection{}
+
 \end{document}
